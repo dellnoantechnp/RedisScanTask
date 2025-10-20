@@ -42,10 +42,14 @@ func init() {
 
 func configDefaultCreate(path string) {
 	// 设置默认值
-	viper.SetDefault("address", "127.0.0.1")
-	viper.SetDefault("port", 6379)
-	viper.SetDefault("log.level", "info")
-	viper.SetDefault("pattern", "*")
+	defaults := getDefaults()
+	for k, v := range defaults {
+		viper.SetDefault(k, v)
+	}
+	//viper.SetDefault("address", "127.0.0.1")
+	//viper.SetDefault("port", 6379)
+	//viper.SetDefaul.t("log.level", "info")
+	//viper.SetDefault("pattern", "*")
 
 	if err := viper.WriteConfigAs(path); err != nil {
 		fmt.Println("Can't write config:", err)

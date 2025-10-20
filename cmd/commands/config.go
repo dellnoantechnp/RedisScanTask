@@ -82,6 +82,6 @@ func initConfig() {
 	//fmt.Println(viper.GetString("pattern"))
 }
 
-func dumpConfig(path string) {
-	viper.GetString()
-}
+//func dumpConfig(path string) {
+//	viper.GetString()
+//}

@@ -12,7 +12,7 @@ type Config struct {
 	Description  string
 }
 
-func init() {
+func getDefaults() map[string]interface{} {
 	configs := make([]Config, 0)
 	configs = append(configs,
 		Config{
@@ -30,7 +30,7 @@ func init() {
 		Config{
 			Name:         "password",
 			ValueType:    reflect.String,
-			DefaultValue: nil,
+			DefaultValue: "",
 			Description:  "Redis server password",
 		},
 		Config{
@@ -38,6 +38,12 @@ func init() {
 			ValueType:    reflect.String,
 			DefaultValue: "*",
 			Description:  "key name pattern",
+		},
+		Config{
+			Name:         "prefer_master",
+			ValueType:    reflect.Bool,
+			DefaultValue: false,
+			Description:  "prefer the redis master node",
 		})
 	fmt.Println("config creating", configs)
 
@@ -50,4 +56,5 @@ func init() {
 	for _, c := range configs {
 		defaults[c.Name] = c.DefaultValue
 	}
+	return defaults
 }
