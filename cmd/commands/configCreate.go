@@ -21,7 +21,6 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(_ *cobra.Command, _ []string) {
-		fmt.Println("config creating ...")
 		configDefaultCreate(defaultConfigFilePath)
 	},
 }
@@ -43,14 +42,17 @@ func init() {
 func configDefaultCreate(path string) {
 	// 设置默认值
 	defaults := getDefaults()
+
 	for k, v := range defaults {
 		viper.SetDefault(k, v)
 	}
-	//viper.SetDefault("address", "127.0.0.1")
-	//viper.SetDefault("port", 6379)
-	//viper.SetDefaul.t("log.level", "info")
-	//viper.SetDefault("pattern", "*")
 
+	// 读取目前配置
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Printf("Error reading config file, %s", err)
+	}
+
+	// 合并持久化配置
 	if err := viper.WriteConfigAs(path); err != nil {
 		fmt.Println("Can't write config:", err)
 		os.Exit(1)

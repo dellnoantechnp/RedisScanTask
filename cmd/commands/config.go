@@ -15,15 +15,15 @@ import (
 // configCmd represents the config command
 var configCmd = &cobra.Command{
 	Use:   "config",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "get default config file in " + defaultConfigFilePath,
+	Long: `RedisScanTask requires a configuration file to hold the configuration information for 
+the connected redis instance:
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+This subcommand is used to display and create a profile for program task execution, with 
+a default profile path in ~/.config/RedisScanTask.yaml
+`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("config called")
+		dumpConfig()
 	},
 }
 
@@ -71,17 +71,18 @@ func initConfig() {
 	viper.AutomaticEnv()
 	// 环境变量前缀：REDISSCANTASK_ADDRESS
 	viper.SetEnvPrefix("REDISSCANTASK")
-
-	//if err := viper.ReadInConfig(); err != nil {
-	//	fmt.Println("Can't read config:", err)
-	//	os.Exit(1)
-	//}
-	//
-	//// 读取配置
-	//fmt.Println(viper.GetString("address"))
-	//fmt.Println(viper.GetString("pattern"))
+	// 读取目前配置
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Printf("Error reading config file, %s", err)
+	}
 }
 
-//func dumpConfig(path string) {
-//	viper.GetString()
-//}
+// dumpConfig 导出当前内存中的配置条目
+func dumpConfig() {
+	defaults := getDefaults()
+
+	fmt.Println("### dump configs ###")
+	for k, _ := range defaults {
+		fmt.Printf("%s: %v\n", k, viper.Get(k))
+	}
+}

@@ -1,10 +1,10 @@
 package commands
 
 import (
-	"fmt"
 	"reflect"
 )
 
+// Config 配置项结构体
 type Config struct {
 	Name         string
 	ValueType    interface{}
@@ -12,6 +12,7 @@ type Config struct {
 	Description  string
 }
 
+// getDefaults 定义默认的配置项以及默认值
 func getDefaults() map[string]interface{} {
 	configs := make([]Config, 0)
 	configs = append(configs,
@@ -43,14 +44,14 @@ func getDefaults() map[string]interface{} {
 			Name:         "prefer_master",
 			ValueType:    reflect.Bool,
 			DefaultValue: false,
-			Description:  "prefer the redis master node",
+			Description:  "if prefer the redis master node",
+		},
+		Config{
+			Name:         "dial_timeout",
+			ValueType:    reflect.Int,
+			DefaultValue: 10,
+			Description:  "connect timeout",
 		})
-	fmt.Println("config creating", configs)
-
-	var names []string
-	for _, c := range configs {
-		names = append(names, c.Name)
-	}
 
 	defaults := make(map[string]interface{})
 	for _, c := range configs {
