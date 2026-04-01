@@ -1,4 +1,4 @@
-package Tasks
+package Processor
 
 import (
 	"RedisScanTask/pkg/TaskError"

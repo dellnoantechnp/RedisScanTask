@@ -4,7 +4,7 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package commands
 
 import (
-	"RedisScanTask/Tasks"
+	"RedisScanTask/Processor"
 	"RedisScanTask/pkg/TaskError"
 	"context"
 	"fmt"
@@ -15,6 +15,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -23,8 +24,8 @@ import (
 
 // serveCmd represents the serve command
 var taskCmd = &cobra.Command{
-	Use:   "task",
-	Short: "A brief description of your command",
+	Use:   "count",
+	Short: "Scan for count key pattern",
 	Long: `A longer description that spans multiple lines and likely contains examples
 			and usage of using your command. For example:
 			
@@ -32,11 +33,13 @@ var taskCmd = &cobra.Command{
 			This application is a tool to generate the needed files
 			to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// 执行任务
 		run()
 	},
 }
 
 func init() {
+	taskCmd.GroupID = "Processor"
 	rootCmd.AddCommand(taskCmd)
 
 	// Here you will define your flags and configuration settings.
@@ -54,11 +57,13 @@ func run() {
 	var programLevel = new(slog.LevelVar)
 	myLogger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: programLevel}))
 
+	// 获取配置文件内容
 	initConfig()
 	address := viper.GetString("address")
 	password := viper.GetString("password")
 	pattern := viper.GetString("pattern")
 
+	// 记录开始时间点
 	start := time.Now()
 
 	client := redis.NewClusterClient(&redis.ClusterOptions{
@@ -82,7 +87,8 @@ func run() {
 	}
 
 	elapsed := time.Now().Sub(start)
-	fmt.Printf("Time elapsed to SCAN all keys: %s, keys count: %+v\n", elapsed, len(keys))
+	fmt.Println(strings.Repeat("-", 90))
+	fmt.Printf("Time elapsed: %s\n  Count: %+v\n", elapsed, len(keys))
 }
 
 func getAllKeysMatched(ctx context.Context, client *redis.ClusterClient, pattern string) (keys []string, err error) {
@@ -115,7 +121,7 @@ func getAllKeysMatched(ctx context.Context, client *redis.ClusterClient, pattern
 		iter := client.Scan(ctx, 0, pattern, 1000).Iterator()
 
 		//var task *MemStats
-		task := &Tasks.MemStats{
+		task := &Processor.MemStats{
 			LogSize:   400,
 			TaskError: TaskError.TaskError{Code: 200},
 		}

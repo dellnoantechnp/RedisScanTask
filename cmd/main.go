@@ -1,7 +1,7 @@
 package main
 
 import (
-	"RedisScanTask/Tasks"
+	"RedisScanTask/Processor"
 	"RedisScanTask/pkg/TaskError"
 	"context"
 	"fmt"
@@ -16,8 +16,18 @@ import (
 )
 
 func main() {
+	var programLevel = new(slog.LevelVar)
+	myLogger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: programLevel}))
+
+	// 从环境变量中获取连接地址和认证信息
 	address := os.Getenv("REDIS_ADDRESS")
+	if address == "" {
+		// default value
+		address = "127.0.0.1"
+	}
+
 	password := os.Getenv("REDIS_PASSWORD")
+
 	var pattern string
 	if len(os.Args) < 2 {
 		pattern = ""
@@ -25,13 +35,11 @@ func main() {
 		pattern = os.Args[1]
 	}
 
-	var programLevel = new(slog.LevelVar)
-	myLogger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: programLevel}))
-
-	if address == "" || pattern == "" {
-		myLogger.Warn("REDIS_ADDRESS and REDIS_PASSWORD environment variables should be set, and cli options are required")
+	if address == "" && pattern == "" {
+		myLogger.Warn("ERROR: REDIS_ADDRESS and REDIS_PASSWORD environment variables should be set, " +
+			"and cli options are required")
 		myLogger.Warn("usage: ")
-		myLogger.Warn("  REDIS_ADDRESS=1.2.3.4:6379 REDIS_PASSWORD=123456 go run main.go <key_pattern>")
+		myLogger.Warn("  REDIS_ADDRESS=1.2.3.4:6379 REDIS_PASSWORD=auth_pass go run main.go <key_pattern>\n")
 		os.Exit(1)
 	}
 
@@ -94,7 +102,7 @@ func getAllKeysMatched(ctx context.Context, client *redis.ClusterClient, pattern
 		iter := client.Scan(ctx, 0, pattern, 1000).Iterator()
 
 		//var task *MemStats
-		task := &Tasks.MemStats{
+		task := &Processor.MemStats{
 			LogSize:   400,
 			TaskError: TaskError.TaskError{Code: 200},
 		}

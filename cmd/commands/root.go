@@ -1,5 +1,6 @@
 /*
-Copyright © 2025 NAME HERE <EMAIL ADDRESS>
+Copyright © 2025 dellnoantechnp <dellnoantechnp@gmail.com>
+Resource page: https://github.com/dellnoantechnp/RedisScanTask
 */
 package commands
 
@@ -11,7 +12,7 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "RedisScanTask",
-	Short: "A command-line tool for Redis key scanning statistics tasks",
+	Short: "A command-line tool for Redis key scanning statistics processor.",
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
@@ -41,6 +42,11 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	rootCmd.AddGroup(&cobra.Group{
+		ID:    "Processor",
+		Title: "Processor Tasks",
+	})
 
 	// 初始化配置文件
 	cobra.OnInitialize(initConfig)
