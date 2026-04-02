@@ -45,7 +45,7 @@ func init() {
 
 	rootCmd.AddGroup(&cobra.Group{
 		ID:    "Processor",
-		Title: "Processor Tasks",
+		Title: "Processor Tasks:",
 	})
 
 	// 初始化配置文件
