@@ -25,13 +25,10 @@ import (
 // serveCmd represents the serve command
 var taskCmd = &cobra.Command{
 	Use:   "count",
-	Short: "Scan for count key pattern",
-	Long: `A longer description that spans multiple lines and likely contains examples
-			and usage of using your command. For example:
-			
-			Cobra is a CLI library for Go that empowers applications.
-			This application is a tool to generate the needed files
-			to quickly create a Cobra application.`,
+	Short: "Count on key pattern",
+	Long: `This task is used to match the number of keys that key name match the pattern string.
+
+  Use redis command "scan pattern" on each master instance.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// 执行任务
 		run()
@@ -92,7 +89,7 @@ func run() {
 }
 
 func getAllKeysMatched(ctx context.Context, client *redis.ClusterClient, pattern string) (keys []string, err error) {
-	log.Printf("scanning for all the keys matched with: %s\n", pattern)
+	log.Printf("Scanning for all the keys matched with: %s\n", pattern)
 
 	nodeIndex := 0
 	// 通过 ctx 获取logger
@@ -101,7 +98,7 @@ func getAllKeysMatched(ctx context.Context, client *redis.ClusterClient, pattern
 	// 利用 waitGroup 保证每个 master 节点的最终 total 日志保持最后输出
 	wg := sync.WaitGroup{}
 
-	err = client.ForEachMaster(ctx, func(ctx context.Context, rd *redis.Client) error {
+	err = client.ForEachSlave(ctx, func(ctx context.Context, rd *redis.Client) error {
 		nodeIndex++
 		c := 0
 		wg.Add(1)
@@ -117,8 +114,8 @@ func getAllKeysMatched(ctx context.Context, client *redis.ClusterClient, pattern
 		redisNode := redisNodeRe[1]
 
 		logger2 := logger.With("node", redisNode)
-		logger2.Info("scan master node #" + strconv.Itoa(nodeIndex))
-		iter := client.Scan(ctx, 0, pattern, 1000).Iterator()
+		logger2.Info("scan slave node #" + strconv.Itoa(nodeIndex))
+		iter := client.Scan(ctx, 0, pattern, offset).Iterator()
 
 		//var task *MemStats
 		task := &Processor.MemStats{
