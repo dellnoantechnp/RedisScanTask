@@ -5,7 +5,7 @@ package commands
 
 import (
 	"RedisScanTask/Processor"
-	"RedisScanTask/pkg/TaskError"
+	"RedisScanTask/pkg"
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
@@ -13,10 +13,10 @@ import (
 	"log"
 	"log/slog"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -91,62 +91,82 @@ func run() {
 func getAllKeysMatched(ctx context.Context, client *redis.ClusterClient, pattern string) (keys []string, err error) {
 	log.Printf("Scanning for all the keys matched with: %s\n", pattern)
 
-	nodeIndex := 0
+	var nodeIndex int32
 	// 通过 ctx 获取logger
 	logger := ctx.Value("logger").(*slog.Logger)
 
 	// 利用 waitGroup 保证每个 master 节点的最终 total 日志保持最后输出
 	wg := sync.WaitGroup{}
 
-	err = client.ForEachSlave(ctx, func(ctx context.Context, rd *redis.Client) error {
-		nodeIndex++
+	err = client.ForEachMaster(ctx, func(ctx context.Context, rd *redis.Client) error {
+		idx := atomic.AddInt32(&nodeIndex, 1)
 		c := 0
 		wg.Add(1)
-		addr := rd.String()
+		addr := rd.Options().Addr
 
-		rePattern := "Redis<(.*) db.*"
-		re, err := regexp.Compile(rePattern)
-		redisNodeRe := re.FindStringSubmatch(addr)
-		if err != nil {
-			return err
-		}
+		// 组装包含节点信息的 logger 对象
+		loggerNode := logger.With("node", addr)
 
-		redisNode := redisNodeRe[1]
+		loggerNode.Info("scan master node #" + strconv.Itoa(int(idx)))
 
-		logger2 := logger.With("node", redisNode)
-		logger2.Info("scan slave node #" + strconv.Itoa(nodeIndex))
-		iter := client.Scan(ctx, 0, pattern, offset).Iterator()
+		nodeCtx := context.WithValue(ctx, "logger", loggerNode)
 
-		//var task *MemStats
-		task := &Processor.MemStats{
-			LogSize:   400,
-			TaskError: TaskError.TaskError{Code: 200},
-		}
+		go func(ctx context.Context, nodeClient *redis.Client) {
+			defer wg.Done()
 
-		for iter.Next(ctx) {
-			key := iter.Val()
-			logger2.Info("found key", "name", key)
-			keys = append(keys, key)
-			c++
-			if s, err := task.Task(client, ctx, key); task.Code >= 500 {
-				panic(err)
-			} else if task.Code == 200 {
-				logger2.Info(s)
+			err := pkg.RunScanner(ctx, nodeClient, pattern, []pkg.KeyProcessor{
+				&Processor.SizeProcessor{},
+			})
+			if err != nil {
+				return
 			}
-		}
-		wg.Done()
+		}(nodeCtx, rd)
+		//// 执行 Scan 操作
+		////iter := client.Scan(ctx, 0, pattern, offset).Iterator()
+		//keys, nextCursor, err := rd.Scan(ctx, 0, pattern, offset).Result()
+		//if err != nil {
+		//	return fmt.Errorf("scan error: %w", err)
+		//}
+		//if len(keys) > 0 {
+		//	fmt.Println(keys)
+		//}
+		//cursor := nextCursor
+		//if cursor == 0 {
+		//	os.Exit(1)
+		//}
+
+		//// var task *MemStats
+		//task := &Processor.MemStats{
+		//	LogSize:   400,
+		//	TaskError: TaskError.TaskError{Code: 200},
+		//}
+
+		// 迭代
+		//for iter.Next(ctx) {
+		//	key := iter.Val()
+		//	loggerNode.Info("found key", "name", key)
+		//	keys = append(keys, key)
+		//	c++
+		//	//if s, err := task.Task(client, ctx, key); task.Code >= 500 {
+		//	//	panic(err)
+		//	//} else if task.Code == 200 {
+		//	//	loggerNode.Info(s)
+		//	//}
+		//}
+		//wg.Done()
 
 		// 打印最终 total 统计日志
 		wg.Wait()
 
 		// 每个 master 节点打印最终符合 pattern 名称key的总和
-		logger2.Info("total keys " + strconv.Itoa(c))
+		loggerNode.Info("total keys " + strconv.Itoa(c))
 
-		if err := iter.Err(); err != nil {
-			slog.Error("scan iterator has failed: %s", err)
-		}
-
-		return iter.Err()
+		//if err := iter.Err(); err != nil {
+		//	slog.Error("scan iterator has failed: %s", err)
+		//}
+		//
+		//return iter.Err()
+		return nil
 	})
 
 	if err != nil {

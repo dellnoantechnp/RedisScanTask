@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
+	"log/slog"
 	"sync"
 )
 
@@ -16,6 +17,7 @@ type SizeProcessor struct {
 	mu         sync.Mutex
 	totalBytes int64
 	largeKeys  []string // 记录超过特定大小的 key
+	logger     slog.Logger
 }
 
 func (p *SizeProcessor) Name() string { return "Size Checker" }
@@ -24,6 +26,8 @@ func (p *SizeProcessor) Process(ctx context.Context, client redis.Cmdable, keys 
 	if len(keys) == 0 {
 		return nil
 	}
+
+	p.logger = ctx.Value("logger")
 
 	pipe := client.Pipeline()
 	cmds := make(map[string]*redis.IntCmd, len(keys))
