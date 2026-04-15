@@ -16,11 +16,11 @@ import (
 var configCmd = &cobra.Command{
 	Use:   "config",
 	Short: "get default config file in " + defaultConfigFilePath,
-	Long: `RedisScanTask requires a configuration file to hold the configuration information for 
+	Long: `redisScan requires a configuration file to hold the configuration information for 
 the connected redis instance:
 
 This subcommand is used to display and create a profile for program task execution, with 
-a default profile path in ~/.config/RedisScanTask.yaml
+a default profile path in ~/.config/redisScan.yaml or ./redisScan.yaml. 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		dumpConfig()
@@ -29,7 +29,7 @@ a default profile path in ~/.config/RedisScanTask.yaml
 
 var (
 	home, _               = homedir.Dir()
-	configFileName        = "RedisScanTask.yaml"
+	configFileName        = "redisScan.yaml"
 	defaultConfigFilePath = strings.Join(
 		[]string{home, ".config", configFileName},
 		"/")
@@ -61,16 +61,16 @@ func initConfig() {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		viper.AddConfigPath(home + "/.config") // 查找 ~/.config/RedisScanTask.yaml
+		viper.AddConfigPath(home + "/.config") // 查找 ~/.config/redisScan.yaml, Prefer
 		viper.AddConfigPath(".")               // 查找当前目录
 		viper.SetConfigType("yaml")            // 设置默认类型
-		viper.SetConfigName("RedisScanTask")   // 配置文件名 (RedisScanTask.yaml)
+		viper.SetConfigName("redisScan")       // 配置文件名 (redisScan.yaml)
 	}
 
 	// 读取环境变量
 	viper.AutomaticEnv()
-	// 环境变量前缀：REDISSCANTASK_ADDRESS
-	viper.SetEnvPrefix("REDISSCANTASK")
+	// 环境变量前缀：REDISSCAN_ADDRESS
+	viper.SetEnvPrefix("REDISSCAN")
 	// 读取目前配置
 	if err := viper.ReadInConfig(); err != nil {
 		fmt.Printf("Error reading config file, %s", err)

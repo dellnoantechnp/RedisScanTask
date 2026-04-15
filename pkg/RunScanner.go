@@ -4,6 +4,10 @@ import (
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
+	"log/slog"
+	"strconv"
+	"sync"
+	"sync/atomic"
 )
 
 // @Title        RunScanner.go
@@ -17,6 +21,8 @@ func RunScanner(ctx context.Context, client redis.Cmdable, matchPattern string, 
 	count := int64(0)
 	// 每次 SCAN 获取的数量，建议保持在 100-500 之间
 	batchSize := int64(200)
+
+	logger := ctx.Value("logger").(*slog.Logger)
 
 	for {
 		keys, nextCursor, err := client.Scan(ctx, cursor, matchPattern, batchSize).Result()
@@ -41,6 +47,60 @@ func RunScanner(ctx context.Context, client redis.Cmdable, matchPattern string, 
 		}
 	}
 
-	fmt.Printf("Scan completed. Total matched keys: %d\n", count)
+	logger.Info(fmt.Sprintf("Scan completed. Total matched keys: %d", count))
+	return nil
+}
+
+func GetAllKeysMatched(ctx context.Context, client *redis.ClusterClient, pattern string,
+	processors []KeyProcessor) (err error) {
+	var nodeIndex int32
+	// 通过 ctx 获取logger
+	logger := ctx.Value("logger").(*slog.Logger)
+
+	logger.Info(fmt.Sprintf("Scanning for all the keys matched with pattern: '%s'", pattern))
+
+	// 利用 waitGroup 保证每个 master 节点的最终 total 日志保持最后输出
+	wg := sync.WaitGroup{}
+
+	err = client.ForEachMaster(ctx, func(ctx context.Context, rd *redis.Client) error {
+		idx := atomic.AddInt32(&nodeIndex, 1)
+		wg.Add(1)
+		addr := rd.Options().Addr
+
+		// 组装包含节点信息的 logger 对象
+		loggerNode := logger.With("node", addr)
+
+		loggerNode.Info("scan master node #" + strconv.Itoa(int(idx)))
+
+		nodeCtx := context.WithValue(ctx, "logger", loggerNode)
+
+		go func(ctx context.Context, nodeClient *redis.Client) {
+			defer wg.Done()
+
+			err := RunScanner(ctx, nodeClient, pattern, processors)
+			if err != nil {
+				return
+			}
+		}(nodeCtx, rd)
+
+		// 打印最终 total 统计日志
+		wg.Wait()
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("---------------------------- Final Report ----------------------------")
+	for _, p := range processors {
+		p.PrintSummary()
+	}
+
+	if err != nil {
+		logger.Error(fmt.Sprintf("scanning redis cluster nodes with iterator has failed: %s", err))
+
+		return err
+	}
+
 	return nil
 }

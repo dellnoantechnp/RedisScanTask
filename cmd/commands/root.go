@@ -11,7 +11,7 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "RedisScanTask",
+	Use:   "redisScan",
 	Short: "A command-line tool for Redis key scanning statistics processor.",
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
