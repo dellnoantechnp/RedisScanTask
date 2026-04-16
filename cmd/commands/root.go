@@ -5,6 +5,9 @@ Resource page: https://github.com/dellnoantechnp/RedisScanTask
 package commands
 
 import (
+	"RedisScanTask/utils"
+	"errors"
+	"fmt"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -16,12 +19,19 @@ var rootCmd = &cobra.Command{
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
+	// 使用 PersistentPreRunE 在执行逻辑前进行拦截错误
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		if Batch < 1 || Batch > 1000 {
+			return errors.New(fmt.Sprintf("flag --batch must be between 1 and 1000, but got %d", Batch))
+		}
+		return nil
+	},
 }
 
 var (
 	cfgFile string
 	togger  bool
-	offset  int64
+	Batch   int64
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -44,7 +54,11 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolVarP(&togger, "toggle", "t", false, "Help message for toggle")
-	rootCmd.PersistentFlags().Int64VarP(&offset, "offset", "s", 1000, "Scan offsets number of each loop")
+	// Redis Scan 批次大小
+	rootCmd.PersistentFlags().Int64VarP(&Batch, "batch", "b", 300, "Scan batch size on each loop, "+
+		"correct value between in 1 and 1000.")
+	// No Colorize output
+	rootCmd.PersistentFlags().BoolVar(&utils.Colorize, "no-color", false, "Disable color output.")
 
 	rootCmd.AddGroup(&cobra.Group{
 		ID:    "Processor",

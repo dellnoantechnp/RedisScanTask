@@ -16,11 +16,10 @@ import (
 // @Update       2026-04-14 18:01
 
 // ScanEngine 核心引擎
-func RunScanner(ctx context.Context, client redis.Cmdable, matchPattern string, processors []KeyProcessor) error {
+func RunScanner(ctx context.Context, client redis.Cmdable, matchPattern string,
+	batchSize int64, processors []KeyProcessor) error {
 	var cursor uint64
 	count := int64(0)
-	// 每次 SCAN 获取的数量，建议保持在 100-500 之间
-	batchSize := int64(200)
 
 	logger := ctx.Value("logger").(*slog.Logger)
 
@@ -52,7 +51,7 @@ func RunScanner(ctx context.Context, client redis.Cmdable, matchPattern string, 
 }
 
 func GetAllKeysMatched(ctx context.Context, client *redis.ClusterClient, pattern string,
-	processors []KeyProcessor) (err error) {
+	batchSize int64, processors []KeyProcessor) (err error) {
 	var nodeIndex int32
 	// 通过 ctx 获取logger
 	logger := ctx.Value("logger").(*slog.Logger)
@@ -77,7 +76,7 @@ func GetAllKeysMatched(ctx context.Context, client *redis.ClusterClient, pattern
 		go func(ctx context.Context, nodeClient *redis.Client) {
 			defer wg.Done()
 
-			err := RunScanner(ctx, nodeClient, pattern, processors)
+			err := RunScanner(ctx, nodeClient, pattern, batchSize, processors)
 			if err != nil {
 				return
 			}
@@ -94,12 +93,6 @@ func GetAllKeysMatched(ctx context.Context, client *redis.ClusterClient, pattern
 	fmt.Println("---------------------------- Final Report ----------------------------")
 	for _, p := range processors {
 		p.PrintSummary()
-	}
-
-	if err != nil {
-		logger.Error(fmt.Sprintf("scanning redis cluster nodes with iterator has failed: %s", err))
-
-		return err
 	}
 
 	return nil

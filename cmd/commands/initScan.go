@@ -43,6 +43,7 @@ func Run(processors []pkg.KeyProcessor) {
 		context.WithValue(context.Background(), "logger", myLogger),
 		client,
 		pattern,
+		Batch,
 		processors)
 	if err != nil {
 		panic(err)

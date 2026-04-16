@@ -1,10 +1,10 @@
 package Processor
 
 import (
+	"RedisScanTask/utils"
 	"context"
 	"fmt"
 	"github.com/dustin/go-humanize"
-	"github.com/fatih/color"
 	"github.com/redis/go-redis/v9"
 	"log/slog"
 	"strconv"
@@ -83,8 +83,9 @@ func (p *SizeProcessor) PrintSummary() {
 	totalSize := humanize.Bytes(p.totalBytes)
 	fmt.Printf("[%s] Total Size: %s, Large Keys (>1MB) Found: %d\n",
 		p.Name(), totalSize, len(p.largeKeys))
-	ss := color.HiBlackString("\\__")
 	if len(p.sampleLargeKey) > 0 {
-		fmt.Printf("  %s Large keys top %d: %s\n", ss, SampleLargeKeyNum, strings.Join(p.sampleLargeKey, ", "))
+		fmt.Printf("  %s Large keys top %d: %s\n", utils.ColorizePrefix(), SampleLargeKeyNum,
+			strings.Join(p.sampleLargeKey, ","+
+				" "))
 	}
 }

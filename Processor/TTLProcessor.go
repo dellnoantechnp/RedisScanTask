@@ -1,10 +1,12 @@
 package Processor
 
 import (
+	"RedisScanTask/utils"
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"
 	"log/slog"
+	"strings"
 	"sync"
 )
 
@@ -14,12 +16,15 @@ import (
 // @Update       2026-03-31 14:03
 
 type TTLProcessor struct {
-	mu          sync.Mutex
-	totalKeys   int64
-	noTTLCount  int64 // 永不过期的 key 数量 (-1)
-	expireCount int64 // 有过期时间的 key 数量
-	logger      *slog.Logger
+	mu              sync.Mutex
+	totalKeys       int64
+	noTTLCount      int64 // 永不过期的 key 数量 (-1)
+	expireCount     int64 // 有过期时间的 key 数量
+	logger          *slog.Logger
+	sampleNoTTLKeys []string // 记录个别未设置TTL的key
 }
+
+const SampleNoTTLKeyNum = 5
 
 func (p *TTLProcessor) Name() string { return "TTL Checker" }
 
@@ -56,6 +61,9 @@ func (p *TTLProcessor) Process(ctx context.Context, client redis.Cmdable, keys [
 				slog.LevelWarn,
 				fmt.Sprintf("scaned unset ttl key %s", key),
 			)
+			if len(p.sampleNoTTLKeys) < SampleNoTTLKeyNum { // 记录 SampleNoTTLKeyNum 个 key
+				p.sampleNoTTLKeys = append(p.sampleNoTTLKeys, key)
+			}
 		} else if ttl > 0 { // ttl 为 -2 表示 key 不存在，忽略
 			localExpire++
 			p.logger.LogAttrs(
@@ -78,4 +86,7 @@ func (p *TTLProcessor) Process(ctx context.Context, client redis.Cmdable, keys [
 func (p *TTLProcessor) PrintSummary() {
 	fmt.Printf("[%s] Total Checked: %d, No TTL: %d, Has TTL: %d\n",
 		p.Name(), p.totalKeys, p.noTTLCount, p.expireCount)
+	if len(p.sampleNoTTLKeys) > 0 {
+		fmt.Printf("  %s No TTL keys top %d: %s\n", utils.ColorizePrefix(), SampleNoTTLKeyNum, strings.Join(p.sampleNoTTLKeys, ", "))
+	}
 }
