@@ -14,8 +14,9 @@ var taskCmd = &cobra.Command{
 	Use:   "count",
 	Short: "Count redis key name on match pattern",
 	Long: `This task is used to match the number of keys that key name match the pattern string.
-
-  Use redis command "scan pattern" on each master instance.`,
+Use redis command "scan pattern" on each master instance.`,
+	GroupID: "Processor",
+	Example: ">_ redisScan count",
 	Run: func(cmd *cobra.Command, args []string) {
 		// 定义处理器
 		processors := []pkg.KeyProcessor{
