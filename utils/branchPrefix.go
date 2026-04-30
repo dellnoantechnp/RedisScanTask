@@ -21,3 +21,11 @@ func ColorizePrefix() string {
 		return branchPrefix
 	}
 }
+
+func ColorizeWarningString(s string) string {
+	if !Colorize {
+		return color.HiRedString(s)
+	} else {
+		return s
+	}
+}
