@@ -1,7 +1,7 @@
 package Processor
 
 import (
-	"RedisScanTask/utils"
+	"RedisScanner/utils"
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"

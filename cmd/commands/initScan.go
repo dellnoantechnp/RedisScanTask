@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"RedisScanTask/pkg"
+	"RedisScanner/pkg"
 	"context"
 	"fmt"
 	"github.com/redis/go-redis/v9"

@@ -49,7 +49,7 @@ func configDefaultCreate(path string) {
 
 	// 读取目前配置
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("Error reading config file, %s", err)
+		fmt.Printf("Error reading config file, %s\n", err)
 	}
 
 	// 合并持久化配置

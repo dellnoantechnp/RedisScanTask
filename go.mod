@@ -1,4 +1,4 @@
-module RedisScanTask
+module RedisScanner
 
 go 1.25.0
 

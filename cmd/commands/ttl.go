@@ -4,8 +4,8 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package commands
 
 import (
-	"RedisScanTask/Processor"
-	"RedisScanTask/pkg"
+	"RedisScanner/Processor"
+	"RedisScanner/pkg"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +15,7 @@ var ttlCmd = &cobra.Command{
 	Short:   "Count redis key has ttl on match pattern ",
 	Long:    `This task is used to scan the number of times a specified pattern key has a TTL.`,
 	GroupID: "Processor",
-	Example: ">_ redisScan ttl",
+	Example: ">_ redisScanner ttl",
 	Run: func(cmd *cobra.Command, args []string) {
 		// 定义处理器
 		processors := []pkg.KeyProcessor{

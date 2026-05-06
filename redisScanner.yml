@@ -1,0 +1,5 @@
+address: 127.0.0.1:6379
+password: "redis-password"
+pattern: 'im:*'
+port: 6379
+prefer_master: true

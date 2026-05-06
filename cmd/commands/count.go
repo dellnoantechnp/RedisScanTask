@@ -4,8 +4,8 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package commands
 
 import (
-	"RedisScanTask/Processor"
-	"RedisScanTask/pkg"
+	"RedisScanner/Processor"
+	"RedisScanner/pkg"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +16,7 @@ var taskCmd = &cobra.Command{
 	Long: `This task is used to match the number of keys that key name match the pattern string.
 Use redis command "scan pattern" on each master instance.`,
 	GroupID: "Processor",
-	Example: ">_ redisScan count",
+	Example: ">_ redisScanner count",
 	Run: func(cmd *cobra.Command, args []string) {
 		// 定义处理器
 		processors := []pkg.KeyProcessor{

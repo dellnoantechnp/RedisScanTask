@@ -29,7 +29,7 @@ a default profile path in ~/.config/redisScan.yaml or ./redisScan.yaml.
 
 var (
 	home, _               = homedir.Dir()
-	configFileName        = "redisScan.yaml"
+	configFileName        = "redisScanner.yaml"
 	defaultConfigFilePath = strings.Join(
 		[]string{home, ".config", configFileName},
 		"/")
@@ -64,7 +64,7 @@ func initConfig() {
 		viper.AddConfigPath(home + "/.config") // 查找 ~/.config/redisScan.yaml, Prefer
 		viper.AddConfigPath(".")               // 查找当前目录
 		viper.SetConfigType("yaml")            // 设置默认类型
-		viper.SetConfigName("redisScan")       // 配置文件名 (redisScan.yaml)
+		viper.SetConfigName("redisScanner")    // 配置文件名 (redisScaner.yaml)
 	}
 
 	// 读取环境变量
@@ -73,7 +73,7 @@ func initConfig() {
 	viper.SetEnvPrefix("REDISSCAN")
 	// 读取目前配置
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("Error reading config file, %s", err)
+		fmt.Printf("Error reading config file, %s\n", err)
 	}
 }
 

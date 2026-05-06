@@ -1,4 +1,4 @@
-# RedisScaner
+# RedisScanner
 
 A command-line tool for scanning and processing Redis keys by pattern. Supports both standalone and cluster modes, with multiple built-in processors for counting, TTL analysis, memory size estimation, and safe deletion.
 
@@ -16,8 +16,8 @@ A command-line tool for scanning and processing Redis keys by pattern. Supports 
 ### From source
 
 ```bash
-git clone https://github.com/dellnoantechnp/RedisScaner.git
-cd RedisScaner
+git clone https://github.com/dellnoantechnp/RedisScanner.git
+cd RedisScanner
 go build -o redisScan
 ```
 

@@ -1,11 +1,11 @@
 /*
 Copyright © 2025 dellnoantechnp <dellnoantechnp@gmail.com>
-Resource page: https://github.com/dellnoantechnp/RedisScanTask
+Resource page: https://github.com/dellnoantechnp/RedisScaner
 */
 package commands
 
 import (
-	"RedisScanTask/utils"
+	"RedisScanner/utils"
 	"errors"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -24,6 +24,15 @@ var rootCmd = &cobra.Command{
 		if Batch < 1 || Batch > 1000 {
 			return errors.New(fmt.Sprintf("flag --batch must be between 1 and 1000, but got %d", Batch))
 		}
+
+		// version 子命令跳过配置文件检测
+		if cmd.Name() == "version" || cmd.Name() == "help" {
+			return nil
+		}
+
+		// 初始化配置文件
+		initConfig()
+
 		return nil
 	},
 }
@@ -49,7 +58,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.RedisScanTask.yaml)")
+	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.RedisScaner.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -66,5 +75,5 @@ func init() {
 	})
 
 	// 初始化配置文件
-	cobra.OnInitialize(initConfig)
+	//cobra.OnInitialize(initConfig)
 }

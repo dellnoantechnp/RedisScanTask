@@ -4,9 +4,9 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package commands
 
 import (
-	"RedisScanTask/Processor"
-	"RedisScanTask/pkg"
-	"RedisScanTask/utils"
+	"RedisScanner/Processor"
+	"RedisScanner/pkg"
+	"RedisScanner/utils"
 	"bufio"
 	"fmt"
 	"os"
@@ -21,7 +21,7 @@ var forceDelete bool
 var deleteCmd = &cobra.Command{
 	Use:     "delete",
 	Short:   "Delete redis key name on match pattern, /* Dangerous */",
-	Example: ">_ redisScan delete",
+	Example: ">_ redisScanner delete",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Println("delete called")
 
